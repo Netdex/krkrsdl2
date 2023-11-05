@@ -10,6 +10,7 @@ project('krkrsdl2',
 		'default_library=static',
 		'c_std=gnu11',
 		'cpp_std=c++11',
+		'b_lto=true',
 	],
 	version: 'unknown',
 )
@@ -99,7 +100,10 @@ if target_machine.system() == 'emscripten'
 		'-s', 'MAIN_MODULE=1',
 		'-s', 'EXPORT_NAME="instantiate_krkrsdl2_module"',
 		'-s', 'EXPORTED_RUNTIME_METHODS=[\'FS\', \'IDBFS\']',
+		'-s', 'GL_TRACK_ERRORS=1',
+		'-s', 'ENVIRONMENT=web',
 		'-O@0@'.format(get_option('optimization')),
+		# '--closure', '1',
 		'-lidbfs.js',
 		'--bind',
 		'--no-heap-copy',
@@ -193,6 +197,7 @@ if target_machine.system() == 'emscripten'
 	krkrsdl2_override_options += [
 		'optimization=s',
 		'debug=false',
+		'b_lto=true',
 	]
 endif
 krkrsdl2_precompiled_headers_c = []

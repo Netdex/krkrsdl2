@@ -735,7 +735,7 @@ TVPWindowWindow::TVPWindowWindow(tTJSNI_Window *w)
 	Uint32 window_flags = 0;
 
 #ifdef SDL_HINT_RENDER_SCALE_QUALITY
-	SDL_SetHintWithPriority(SDL_HINT_RENDER_SCALE_QUALITY, "2", SDL_HINT_DEFAULT);
+	SDL_SetHintWithPriority(SDL_HINT_RENDER_SCALE_QUALITY, "0", SDL_HINT_DEFAULT);
 #endif
 
 #ifdef KRKRZ_ENABLE_CANVAS
@@ -782,8 +782,9 @@ TVPWindowWindow::TVPWindowWindow(tTJSNI_Window *w)
 #if defined(__EMSCRIPTEN__) && defined(KRKRSDL2_WINDOW_SIZE_IS_LAYER_SIZE)
 	EmscriptenFullscreenStrategy strategy;
 	SDL_memset(&strategy, 0, sizeof(strategy));
-	strategy.scaleMode = EMSCRIPTEN_FULLSCREEN_CANVAS_SCALE_STDDEF;
-	strategy.filteringMode = EMSCRIPTEN_FULLSCREEN_FILTERING_DEFAULT;
+	strategy.scaleMode = EMSCRIPTEN_FULLSCREEN_SCALE_STRETCH;
+	strategy.canvasResolutionScaleMode = EMSCRIPTEN_FULLSCREEN_CANVAS_SCALE_HIDEF;
+	strategy.filteringMode = EMSCRIPTEN_FULLSCREEN_FILTERING_NEAREST;
 	emscripten_enter_soft_fullscreen("#canvas", &strategy);
 #endif
 #ifdef KRKRZ_ENABLE_CANVAS
