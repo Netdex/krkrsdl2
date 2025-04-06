@@ -12,7 +12,8 @@ TVPSDLBitmapCompletion::TVPSDLBitmapCompletion()
 
 void TVPSDLBitmapCompletion::NotifyBitmapCompleted(iTVPLayerManager * manager,
 	tjs_int x, tjs_int y, const void * bits, const class BitmapInfomation * bmpinfo,
-	const tTVPRect &cliprect, tTVPLayerType type, tjs_int opacity) {
+	const tTVPRect &cliprect, tTVPLayerType type, tjs_int opacity)
+{
 	if (!surface)
 	{
 		return;
@@ -20,8 +21,11 @@ void TVPSDLBitmapCompletion::NotifyBitmapCompleted(iTVPLayerManager * manager,
 	const TVPBITMAPINFO *bitmapinfo = bmpinfo->GetBITMAPINFO();
 	tjs_int w = 0;
 	tjs_int h = 0;
-	if(!manager) return;
-	if(!manager->GetPrimaryLayerSize(w, h))
+	if (!manager)
+	{
+		return;
+	}
+	if (!manager->GetPrimaryLayerSize(w, h))
 	{
 		w = 0;
 		h = 0;
@@ -38,34 +42,34 @@ void TVPSDLBitmapCompletion::NotifyBitmapCompleted(iTVPLayerManager * manager,
 		long src_y       = cliprect.top;
 		long src_y_limit = cliprect.bottom;
 		long src_x       = cliprect.left;
-		long width_bytes   = cliprect.get_width() * 4; // 32bit
+		long width_bytes   = cliprect.get_width() * sizeof(tjs_uint32); // 32bit
 		long dest_y      = y;
 		long dest_x      = x;
 		const tjs_uint8 * src_p = (const tjs_uint8 *)bits;
 		long src_pitch;
 
-		if(bitmapinfo->bmiHeader.biHeight < 0)
+		if (bitmapinfo->bmiHeader.biHeight < 0)
 		{
 			// bottom-down
-			src_pitch = bitmapinfo->bmiHeader.biWidth * 4;
-			//src_pitch = -bitmapinfo->bmiHeader.biWidth * 4;
-			//src_p += bitmapinfo->bmiHeader.biWidth * 4 * (bitmapinfo->bmiHeader.biHeight - 1);
+			src_pitch = bitmapinfo->bmiHeader.biWidth * sizeof(tjs_uint32);
+			//src_pitch = -bitmapinfo->bmiHeader.biWidth * sizeof(tjs_uint32);
+			//src_p += bitmapinfo->bmiHeader.biWidth * sizeof(tjs_uint32) * (bitmapinfo->bmiHeader.biHeight - 1);
 		}
 		else
 		{
 			// bottom-up
-			src_pitch = -bitmapinfo->bmiHeader.biWidth * 4;
-			src_p += bitmapinfo->bmiHeader.biWidth * 4 * (bitmapinfo->bmiHeader.biHeight - 1);
-			//src_pitch = bitmapinfo->bmiHeader.biWidth * 4;
+			src_pitch = -bitmapinfo->bmiHeader.biWidth * sizeof(tjs_uint32);
+			src_p += bitmapinfo->bmiHeader.biWidth * sizeof(tjs_uint32) * (bitmapinfo->bmiHeader.biHeight - 1);
+			//src_pitch = bitmapinfo->bmiHeader.biWidth * sizeof(tjs_uint32);
 		}
 
 		if (surface)
 		{
 			SDL_LockSurface(surface);
-			for(; src_y < src_y_limit; src_y ++, dest_y ++)
+			for (; src_y < src_y_limit; src_y++, dest_y++)
 			{
-				const void *srcp = src_p + src_pitch * src_y + src_x * 4;
-				void *destp = (tjs_uint8*)surface->pixels + surface->pitch * dest_y + dest_x * 4;
+				const void *srcp = src_p + src_pitch * src_y + src_x * sizeof(tjs_uint32);
+				void *destp = (tjs_uint8*)surface->pixels + surface->pitch * dest_y + dest_x * sizeof(tjs_uint32);
 				SDL_memcpy(destp, srcp, width_bytes);
 			}
 			SDL_UnlockSurface(surface);

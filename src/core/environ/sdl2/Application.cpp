@@ -55,7 +55,9 @@
 #include "VirtualKey.h"
 #endif
 #include "TVPWindow.h"
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
@@ -113,7 +115,9 @@ static MemoryLeaksDebugBreakPoint gMemoryLeaksDebugBreakPoint;
 #endif
 #endif
 
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 #if defined(__APPLE__)
 #include <TargetConditionals.h>
 #if TARGET_OS_MAC && !TARGET_OS_IPHONE
@@ -121,12 +125,15 @@ static MemoryLeaksDebugBreakPoint gMemoryLeaksDebugBreakPoint;
 #endif
 #endif
 tjs_string ExePath() {
-#if 0
-	tjs_char szFull[_MAX_PATH];
-	::GetModuleFileName(NULL, szFull, sizeof(szFull) / sizeof(tjs_char));
-	return tjs_string(szFull);
-#endif
 	static tjs_string exepath(TJS_W(""));
+#if defined(_WIN32)
+	if (exepath.empty())
+	{
+		tjs_char szFull[_MAX_PATH];
+		::GetModuleFileName(NULL, szFull, sizeof(szFull) / sizeof(tjs_char));
+		exepath = tjs_string(szFull);
+	}
+#endif
 #if defined(__vita__)
 	if (exepath.empty())
 	{
@@ -167,16 +174,15 @@ tjs_string ExePath() {
 	}
 #endif
 #ifndef __EMSCRIPTEN__
-	if (exepath.empty()) {
+	if (exepath.empty())
+	{
 		exepath = tjs_string(_wargv[0]);
 	}
 #endif
 	return exepath;
 }
 
-#if 0
 bool TVPCheckAbout();
-#endif
 bool TVPCheckPrintDataPath();
 void TVPOnError();
 void TVPLockSoundMixer();
@@ -459,9 +465,7 @@ bool tTVPApplication::StartApplication( int argc, tjs_char* argv[] ) {
 #endif
 
 		if(TVPCheckPrintDataPath()) return true;
-#if 0
 		if(TVPExecuteUserConfig()) return true;
-#endif
 
 #ifdef KRKRSDL2_ENABLE_ASYNC_IMAGE_LOAD
 		image_load_thread_ = new tTVPAsyncImageLoader();
@@ -469,9 +473,7 @@ bool tTVPApplication::StartApplication( int argc, tjs_char* argv[] ) {
 
 		TVPSystemInit();
 
-#if 0
 		if(TVPCheckAbout()) return true; // version information dialog box;
-#endif
 
 		SetTitle( tjs_string(TVPKirikiri) );
 		TVPSystemControl = new tTVPSystemControl();
@@ -654,9 +656,12 @@ void tTVPApplication::PrintConsole( const tjs_char* mes, unsigned long len, bool
 	tjs_int u8len = TVPWideCharToUtf8String( mes, &(console_cache_[0]) );
 	console_cache_[u8len] = '\0';
 #ifdef __ANDROID__
-	if( iserror ) {
+	if (iserror)
+	{
 		SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "%s", &(console_cache_[0]) );
-	} else {
+	}
+	else
+	{
 		SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "%s", &(console_cache_[0]) );
 	}
 #elif defined(_WIN32)
@@ -684,9 +689,12 @@ void tTVPApplication::PrintConsole( const tjs_char* mes, unsigned long len, bool
 #else
 	if (is_attach_console_)
 	{
-		if( iserror ) {
+		if (iserror)
+		{
 			fprintf(stdout, "%s\n", &(console_cache_[0]) );
-		} else {
+		}
+		else
+		{
 			fprintf(stdout, "%s\n", &(console_cache_[0]) );
 		}
 	}
@@ -768,7 +776,8 @@ void tTVPApplication::Run() {
 	tarminate_ = true;
 #endif
 	sdl_process_events();
-	if (tarminate_) {
+	if (tarminate_)
+	{
 		return;
 	}
 	bool done = false;

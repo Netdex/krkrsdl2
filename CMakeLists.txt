@@ -58,7 +58,8 @@ else()
 set(EVAL_ENABLE_ASYNC_IMAGE_LOAD OFF)
 endif()
 
-# iOS does not support case insensitivity properly.
+# At the moment, iOS does not support case insensitivity properly with our code
+# due to the fact that some folders cannot be listed
 if((OPTION_ENABLE_CASEINSENSITIVITY) AND (NOT IOS))
 set(EVAL_ENABLE_CASEINSENSITIVITY ON)
 else()
@@ -103,15 +104,16 @@ set(CMAKE_XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2")
 endif()
 
 if(WIN32)
-set(WIN32_RESOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/src/win32-resources CACHE FILEPATH "The path to the resources for Win32.")
+set(WIN32_RESOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/src/resources/win32 CACHE FILEPATH "The path to the resources for Win32.")
 endif()
 
 if(APPLE AND IOS)
-set(IOS_RESOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/src/ios-resources CACHE FILEPATH "The path to the resources for iOS.")
+set(IOS_RESOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/src/resources/ios CACHE FILEPATH "The path to the resources for iOS.")
 endif()
 
 if(APPLE AND NOT IOS)
-set(MACOS_RESOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/src/macos-resources CACHE FILEPATH "The path to the resources for macOS.")
+set(MACOS_RESOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/src/resources/macos CACHE FILEPATH "The path to the resources for macOS.")
+add_compile_options(-Wno-declaration-after-statement)
 endif()
 
 if(VITA)
@@ -120,14 +122,14 @@ include("${VITASDK}/share/vita.cmake" REQUIRED)
 set(VITA_APP_NAME "Kirikiri SDL2" CACHE STRING "The application name to use for the VPK.")
 set(VITA_TITLEID  "KRKR00001"     CACHE STRING "The title ID to use for the VPK.")
 set(VITA_VERSION  "02.00"         CACHE STRING "The version to use for the VPK.")
-set(VITA_RESOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/src/vita-resources CACHE FILEPATH "The path to the resources for Vita.")
+set(VITA_RESOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/src/resources/vita CACHE FILEPATH "The path to the resources for Vita.")
 endif()
 
 if(NINTENDO_SWITCH)
 set(SWITCH_APP_NAME "Kirikiri SDL2" CACHE STRING "The application name to use for the NRO.")
 set(SWITCH_AUTHOR   "uyjulian"      CACHE STRING "The author to use for the NRO.")
 set(SWITCH_VERSION  "v2.0.0"        CACHE STRING "The version to use for the NRO.")
-set(SWITCH_RESOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/src/nswitch-resources CACHE FILEPATH "The path to the resources for Switch.")
+set(SWITCH_RESOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/src/resources/nswitch CACHE FILEPATH "The path to the resources for Switch.")
 endif()
 
 set(EMBED_DATA_PATH ${CMAKE_CURRENT_SOURCE_DIR}/data CACHE FILEPATH "The path to the data file or directory.")
@@ -143,9 +145,7 @@ list(APPEND KRKRSDL2_SRC ${KIRIKIRISDL2_SSE2_SRC})
 list(APPEND KRKRSDL2_SRC ${KIRIKIRISDL2_AVX2_SRC})
 list(APPEND KRKRSDL2_INCLUDES ${KIRIKIRISDL2_INCLUDES})
 
-if(VITA)
 list(APPEND KRKRSDL2_SRC src/support/roundevenf.c)
-endif()
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
 list(APPEND KRKRSDL2_SRC src/plugins/kremscripten.cpp)
@@ -254,6 +254,9 @@ list(APPEND KRKRSDL2_LDFLAGS
 list(APPEND KRKRSDL2_CFLAGS
 	-pthread
 )
+list(APPEND KRKRSDL2_LIBS
+	pthread
+)
 endif()
 
 if(KRKRSDL2_BUILD_ENABLE_WARNINGS)
@@ -284,8 +287,10 @@ list(APPEND KRKRSDL2_LDFLAGS
 	-municode
 	-Wl,--subsystem,windows
 )
+if((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "i686") OR (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "amd64"))
 set_source_files_properties(${KIRIKIRISDL2_SSE2_SRC} PROPERTIES COMPILE_FLAGS -msse2)
 set_source_files_properties(${KIRIKIRISDL2_AVX2_SRC} PROPERTIES COMPILE_FLAGS -mavx2)
+endif()
 list(APPEND KRKRSDL2_SRC
 	src/core/sound/sdl2/tvpsnd.c
 )
